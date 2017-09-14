@@ -51,8 +51,8 @@ public class LonelyTwitterActivity extends Activity {
 				ArrayList<Tweet> tweetList = new ArrayList<Tweet>();
 				tweetList.add(tweet);
 				tweetList.add(tweet1);
-				Log.d("", "The isImportant method on tweet returns " + tweet.isImportant());
-				Log.d("", "The isImportant method on tweet1 returns " + tweet1.isImportant());
+				Log.d("Tag", "The isImportant method on tweet returns " + tweet.isImportant());
+				Log.d("Tag", "The isImportant method on tweet1 returns " + tweet1.isImportant());
 
 
 				setResult(RESULT_OK);
