@@ -57,6 +57,31 @@ public class LonelyTwitterActivity extends Activity {
                     e.printStackTrace();
                 }
 
+
+                // Lab 2 usage example
+                try {
+                    NormalTweet sad_tweet = new NormalTweet("I am sad.");
+                    sad_tweet.addMood(new SadMood());
+                    for (Mood mood : sad_tweet.getMoods()) {
+                        Log.d("Mood", mood.format());
+                    }
+                    NormalTweet happy_tweet = new NormalTweet("I am happy.");
+                    happy_tweet.addMood(new HappyMood());
+                    happy_tweet.addMood(new HappyMood());
+                    for (Mood mood : happy_tweet.getMoods()) {
+                        Log.d("Mood", mood.format());
+                    }
+                }
+                catch (TweetTooLongException e) {
+                    Log.d("Too long", "Tweet too long.");
+                }
+
+
+
+
+
+
+
 				setResult(RESULT_OK);
 				String text = bodyText.getText().toString();
 				saveInFile(text, new Date(System.currentTimeMillis()));
