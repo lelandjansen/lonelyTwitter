@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -15,126 +17,103 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+
+// Referenced: https://github.com/joshua2ua/lonelyTwitter/blob/2dbe926a55d0cd4d72dc2c4cef6f95a46dd744bf/app/src/main/java/ca/ualberta/cs/lonelytwitter/LonelyTwitterActivity.java#L37
 public class LonelyTwitterActivity extends Activity {
+    private static final String FILENAME = "file.sav";
+    private EditText bodyText;
+    private ListView oldTweetsList;
+    private ArrayList<Tweet> tweets = new ArrayList<Tweet>();
+    private ArrayAdapter<Tweet> adapter;
 
-	private static final String FILENAME = "file.sav";
-	private EditText bodyText;
-	private ListView oldTweetsList;
-	
-	/** Called when the activity is first created. */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+    /** Called when the activity is first created. */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
 
-		bodyText = (EditText) findViewById(R.id.body);
-		Button saveButton = (Button) findViewById(R.id.save);
-		oldTweetsList = (ListView) findViewById(R.id.oldTweetsList);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
 
-		saveButton.setOnClickListener(new View.OnClickListener() {
+        bodyText = (EditText) findViewById(R.id.body);
+        Button saveButton = (Button) findViewById(R.id.save);
+        Button clearButton = (Button) findViewById(R.id.clear);
+        oldTweetsList = (ListView) findViewById(R.id.oldTweetsList);
 
-			public void onClick(View v) {
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setResult(RESULT_OK);
+                String text = bodyText.getText().toString();
                 try {
-                    ImportantTweet important_tweet = new ImportantTweet("Hello");
-                    NormalTweet tweet = new NormalTweet("hi");
-                    ArrayList<Tweet> tweets = new ArrayList<Tweet>();
-                    tweets.add(important_tweet);
+                    Tweet tweet = new NormalTweet(text);
                     tweets.add(tweet);
-                    for (Tweet t : tweets) {
-                        Log.d("Some Tag", "isImportant returns " + t.isImportant().toString());
-                    }
-
-                    ArrayList<Tweetable> tweetables = new ArrayList<Tweetable>();
-                    tweetables.add(tweet);
-                    tweetables.add(important_tweet);
                 }
                 catch (TweetTooLongException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
 
+                adapter.notifyDataSetChanged();
+                saveInFile();
 
-                // Lab 2 usage example
-                try {
-                    NormalTweet sad_tweet = new NormalTweet("I am sad.");
-                    sad_tweet.addMood(new SadMood());
-                    for (Mood mood : sad_tweet.getMoods()) {
-                        Log.d("Mood", mood.format());
-                    }
-                    NormalTweet happy_tweet = new NormalTweet("I am happy.");
-                    happy_tweet.addMood(new HappyMood());
-                    happy_tweet.addMood(new HappyMood());
-                    for (Mood mood : happy_tweet.getMoods()) {
-                        Log.d("Mood", mood.format());
-                    }
-                }
-                catch (TweetTooLongException e) {
-                    Log.d("Too long", "Tweet too long.");
-                }
+                bodyText.setText("");
+            }
+        });
 
+        clearButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setResult(RESULT_OK);
+                tweets.clear();
+                adapter.notifyDataSetChanged();
+                saveInFile();
+                bodyText.setText("");
+            }
+        });
+    }
 
+    @Override
+    protected void onStart() {
+        // TODO Auto-generated method stub
+        super.onStart();
+        loadFromFile();
+        adapter = new ArrayAdapter<Tweet>(this, R.layout.list_item, tweets);
+        oldTweetsList.setAdapter(adapter);
+    }
 
+    private void loadFromFile() {
+        try {
+            FileInputStream fis = openFileInput(FILENAME);
+            BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+            Gson gson = new Gson();
+            // Taken from https://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/com/google/gson/Gson.html 2015-09-22
+            Type listType = new TypeToken<ArrayList<NormalTweet>>() {}.getType();
+            tweets = gson.fromJson(in, listType);
+        } catch (FileNotFoundException e) {
+            tweets = new ArrayList<Tweet>();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-
-
-
-				setResult(RESULT_OK);
-				String text = bodyText.getText().toString();
-				saveInFile(text, new Date(System.currentTimeMillis()));
-//				finish();
-
-			}
-		});
-	}
-
-	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-		String[] tweets = loadFromFile();
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-				R.layout.list_item, tweets);
-		oldTweetsList.setAdapter(adapter);
-	}
-
-	private String[] loadFromFile() {
-		ArrayList<String> tweets = new ArrayList<String>();
-		try {
-			FileInputStream fis = openFileInput(FILENAME);
-			BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-			String line = in.readLine();
-			while (line != null) {
-				tweets.add(line);
-				line = in.readLine();
-			}
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return tweets.toArray(new String[tweets.size()]);
-	}
-	
-	private void saveInFile(String text, Date date) {
-		try {
-			FileOutputStream fos = openFileOutput(FILENAME,
-					Context.MODE_APPEND);
-			fos.write(new String(date.toString() + " | " + text)
-					.getBytes());
-			fos.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    private void saveInFile() {
+        try {
+            FileOutputStream fos = openFileOutput(FILENAME,
+                    0);
+            OutputStreamWriter writer = new OutputStreamWriter(fos);
+            Gson gson = new Gson();
+            gson.toJson(tweets, writer);
+            writer.flush();
+            fos.close();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
