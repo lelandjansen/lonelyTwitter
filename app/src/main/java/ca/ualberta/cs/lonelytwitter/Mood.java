@@ -1,32 +1,69 @@
+/*
+ * Class name: Tweet
+ *
+ * Version: 1.0.0
+ *
+ * Date: September 28, 2017
+ *
+ * Copyright 2017 Leland Jansen
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ca.ualberta.cs.lonelytwitter;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Date;
 
 /**
- * Created by leland on 14/09/17.
+ *
  */
-
-
 public abstract class Mood {
     private Date date;
 
+    /**
+     * Create mood (date = now)
+     */
     public Mood() {
         this.date = new Date();
     }
 
+    /**
+     * Create mood with date
+     * @param date Date
+     */
     public Mood(Date date) {
         this.date = new Date();
     }
 
+    /**
+     * Get mood date
+     * @return Date
+     */
     public Date getDate() {
         return date;
     }
 
+    /**
+     * Set tweet date
+     * @param date Date
+     */
     public void setDate(Date date) {
         this.date = date;
     }
 
+    /**
+     * Format mood as a string
+     * @return String representation of mood
+     */
     public abstract String format();
 }
