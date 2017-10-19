@@ -6,8 +6,6 @@ import android.widget.EditText;
 
 import com.robotium.solo.Solo;
 
-import junit.framework.TestCase;
-
 public class LonelyTwitterActivityTest
         extends ActivityInstrumentationTestCase2<LonelyTwitterActivity> {
     private Solo solo;
@@ -36,12 +34,20 @@ public class LonelyTwitterActivityTest
         EditText editText = (EditText) solo.getView(R.id.body);
         solo.enterText(editText, text);
         solo.clickOnButton("Save");
-//        solo.enterText(editText, "");
         assertTrue(solo.waitForText(text));
     }
 
     public void testClickTweetList() {
-
+        solo.assertCurrentActivity("some activity",
+                LonelyTwitterActivity.class);
+        solo.clickOnButton("Clear");
+        String text = "testing text";
+        EditText editText = (EditText) solo.getView(R.id.body);
+        solo.enterText(editText, text);
+        solo.clickOnButton("Save");
+        solo.waitForText(text);
+        solo.clickInList(0);
+        solo.assertCurrentActivity("some activity", EditTweetActivity.class);
     }
 
 
